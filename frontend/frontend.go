@@ -32,7 +32,7 @@ func (this *StorageServerFrontend) PUT(key string, value []byte) error {
 
 func (this *StorageServerFrontend) ServeHTTP(w http.ResponseWriter, req *http.Request) {
   var header http.Header = w.Header()
-  var key string = req.RequestURI
+  var key string = req.RequestURI[1:] // Remove leading slash
   var value []byte
   var err error
   
