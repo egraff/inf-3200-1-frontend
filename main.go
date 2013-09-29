@@ -38,15 +38,6 @@ func main() {
   var listener net.Listener
   var handler frontend.StorageServerFrontendHandler
   
-  /************************************************************
-   ** When you have implemented a proper handler, you should **
-   ** comment in the line below. As long as the line is      **
-   ** commented out, the frontend will use a local hashmap   **
-   ** to implement the key-value database, and the tests     **
-   ** pass!
-   ***********************************************************/
-  //handler = &DHTFrontendHandler{nodes}
-  
   flag.Usage = func() {
     fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
     flag.PrintDefaults()
@@ -62,6 +53,18 @@ func main() {
     flag.Usage()
     os.Exit(1)
   }
+  
+  
+  /************************************************************
+   ** When you have implemented a proper handler, you should **
+   ** comment in the line below. As long as the line is      **
+   ** commented out, the frontend will use a local hashmap   **
+   ** to implement the key-value database, and the tests     **
+   ** pass!
+   ***********************************************************/
+  //handler = &DHTFrontendHandler{nodes}
+  
+  
   
   if httpServerPort > math.MaxUint16 {
     fmt.Println("Invalid port %d", httpServerPort)
