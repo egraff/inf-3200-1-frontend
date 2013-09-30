@@ -147,6 +147,9 @@ func Run(host string, testsToRun int, done chan bool) bool {
         return false
       }
     }
+    
+    // Prevent exhaustion of available ports
+    time.Sleep(10 * time.Millisecond)
   }
   
   // Validate that all key/value pairs are found
@@ -166,6 +169,9 @@ func Run(host string, testsToRun int, done chan bool) bool {
         return false
       }
     }
+    
+    // Prevent exhaustion of available ports
+    time.Sleep(10 * time.Millisecond)
   }
   
   return true
