@@ -62,6 +62,7 @@ func (this *storageServerTest) putTestObject(key, value string) (bool, error) {
   defer resp.Body.Close()
   
   if resp.StatusCode != 200 {
+    fmt.Println("Got HTTP status code %d", resp.StatusCode)
     return false, errors.New(fmt.Sprintf("Got HTTP status code %d", resp.StatusCode))
   }
   
@@ -106,72 +107,80 @@ func Run(host string, testsToRun int, done chan bool) bool {
   var key, value string
   var contains bool
   var this *storageServerTest = new(storageServerTest)
+  var newKeyValues map[string]string
   
   this.host = host
   this.keyValuePairs = make(map[string]string)
   
-  fmt.Println("Generating test data...")
-  
-  // Generate random unique key, value pairs
-  for i := 0; i < testsToRun; i++ {
-    select {
-    case <- done:
-      return true
-    default:
-      for {
-        key, value = this.generateKeyValuePair()
-        _, contains = this.keyValuePairs[key]
-        if !contains {
-          break
+  for ;; time.Sleep(5000 * time.Millisecond) {
+    newKeyValues = make(map[string]string)
+    
+    fmt.Println("Generating test data...")
+    // Generate random, unique key/value-pairs
+    for i := 0; i < testsToRun; i++ {
+      select {
+      case <- done:
+        return true
+      default:
+        for {
+          key, value = this.generateKeyValuePair()
+          _, contains = this.keyValuePairs[key]
+          if !contains {
+            break
+          }
+        }
+        
+        // Add both to set of new key/value-pairs, and the acutal set
+        this.keyValuePairs[key] = value
+        newKeyValues[key] = value
+        
+        runtime.Gosched()
+      }
+    }
+    
+    // Call put to insert the new key/value pairs
+    for key, value = range newKeyValues {
+      select {
+      case <- done:
+        return true
+      default:
+        ok, err := this.putTestObject(key, value)
+        if err != nil {
+          fmt.Println("Failed to put", key, value, "with error", err.Error())
+          return false
+        }
+        
+        if !ok {
+          fmt.Println("Error putting", key, value)
+          return false
         }
       }
-      this.keyValuePairs[key] = value
-      runtime.Gosched()
+      
+      // Prevent exhaustion of available ports
+      time.Sleep(10 * time.Millisecond)
     }
-  }
   
-  // Call put to insert the key/value pairs
-  for key, value = range this.keyValuePairs {
-    select {
-    case <- done:
-      return true
-    default:
-      ok, err := this.putTestObject(key, value)
-      if err != nil {
-        fmt.Println("Failed to put", key, value, "with error", err.Error())
-        return false
+    // Validate that all key/value pairs are found
+    for key, value = range this.keyValuePairs {
+      select {
+      case <- done:
+        return true
+      default:
+        ok, err := this.getTestObject(key, value)
+        if err != nil {
+          fmt.Println("Failed to get", key, value, "with error", err.Error())
+          return false
+        }
+        
+        if !ok {
+          fmt.Println("Error getting", key, value)
+          return false
+        }
       }
       
-      if !ok {
-        fmt.Println("Error putting", key, value)
-        return false
-      }
+      // Prevent exhaustion of available ports
+      time.Sleep(10 * time.Millisecond)
     }
-    
-    // Prevent exhaustion of available ports
-    time.Sleep(10 * time.Millisecond)
-  }
-  
-  // Validate that all key/value pairs are found
-  for key, value = range this.keyValuePairs {
-    select {
-    case <- done:
-      return true
-    default:
-      ok, err := this.getTestObject(key, value)
-      if err != nil {
-        fmt.Println("Failed to get", key, value, "with error", err.Error())
-        return false
-      }
-      
-      if !ok {
-        fmt.Println("Error getting", key, value)
-        return false
-      }
-    }
-    
-    // Prevent exhaustion of available ports
-    time.Sleep(10 * time.Millisecond)
   }
   
   return true

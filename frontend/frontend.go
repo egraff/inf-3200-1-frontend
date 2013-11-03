@@ -42,6 +42,7 @@ func (this *StorageServerFrontend) ServeHTTP(w http.ResponseWriter, req *http.Re
   case "GET":
     value, err = this.handler.GET(key)
     if err != nil {
+      fmt.Println("Got error:", err.Error())
       http.Error(w, fmt.Sprintf("Internal Error: %s", err.Error()), 500)
       return
     }
@@ -76,6 +77,7 @@ func (this *StorageServerFrontend) ServeHTTP(w http.ResponseWriter, req *http.Re
     
     err = this.handler.PUT(key, value)
     if err != nil {
+      fmt.Println("Got error:", err.Error())
       http.Error(w, fmt.Sprintf("Internal Error: %s", err.Error()), 500)
       return
     }
