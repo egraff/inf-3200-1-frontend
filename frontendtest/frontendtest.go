@@ -62,7 +62,7 @@ func (this *storageServerTest) putTestObject(key, value string) (bool, error) {
   defer resp.Body.Close()
   
   if resp.StatusCode != 200 {
-    fmt.Println("Got HTTP status code %d", resp.StatusCode)
+    fmt.Println("storageServerTest.putTestObject :: Got HTTP status code", resp.StatusCode)
     return false, errors.New(fmt.Sprintf("Got HTTP status code %d", resp.StatusCode))
   }
   
